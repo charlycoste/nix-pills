@@ -4,188 +4,202 @@
       version="5.0"
       xml:id="why-you-should-give-it-a-try">
 
-  <title>Why You Should Give it a Try</title>
+  <title>Pourquoi devriez-vous essayer ?</title>
 
   <section>
     <title>Introduction</title>
 
     <para>
-      Welcome to the first post of the "<link
-      xlink:href="https://nixos.org/nix">Nix</link> in pills" series.
-      Nix is a purely functional package manager and deployment
-      system for POSIX.
+      Voici le premier article de la série des "<link
+      xlink:href="https://nixos.org/nix">Nix</link> en comprimés".
+      Nix est un gestionnaire de paquet sans effet de bord et un système de
+      déploiement pour POSIX.
     </para>
 
     <para>
-      There's a lot of documentation that describes what Nix, <link
-      xlink:href="https://nixos.org/nixos">NixOS</link> and related
-      projects are.
-      But the purpose of this post is to convince you to give Nix a try.
-      Installing NixOS is not required, but sometimes I may refer to
-      NixOS as a real world example of Nix usage for building a whole
-      operating system.
+      Il y a beaucoup de documentation décrivant ce que sont Nix, <link
+      xlink:href="https://nixos.org/nixos">NixOS</link> et les projets
+      annexes.
+      Mais le but de cet article est de vous convaincre d'essayer Nix.
+      Installer NixOS n'est pas nécessaire, mais il se peut que je fasse parfois
+      référence à NixOS en tant qu'exemple de système d'exploitation entièrement
+      constructible grâce à Nix.
     </para>
   </section>
 
   <section>
-    <title>Rationale for this series</title>
+    <title>Les raisons de cette série d'articles</title>
     <para>
-      The <link xlink:href="https://nixos.org/nix/manual/">Nix</link>,
-      <link xlink:href="https://nixos.org/nixpkgs/manual/">Nixpkgs</link>, and
-      <link xlink:href="https://nixos.org/nixos/manual/">NixOS</link> manuals;
-      and wiki are excellent resources for explaining how Nix/NixOS works, how
-      you can use it, and the number of cool things being done with it.
-      However, at the beginning you may feel that some of the magic
-      which happens behind the scenes is hard to grasp.
+      Les manuels sur <link
+      xlink:href="https://nixos.org/nix/manual/">Nix</link>,
+      <link xlink:href="https://nixos.org/nixpkgs/manual/">Nixpkgs</link>, et
+      <link xlink:href="https://nixos.org/nixos/manual/">NixOS</link>, 
+      ainsi que le wiki sont d'excellentes sources d'information sur le
+      fonctionnement de Nix/NixOS, comment s'en servir, et la quantité de trucs
+      sympas que l'on peut faire avec. Mais dans un premier temps, vous aurez
+      sûrement des difficultés à saisir les mécanismes que cache toute cette
+      magie.
     </para>
 
     <para>
-      This series aims to complement the existing explanations from the
-      more formal documents.
+      Ces articles visent à compléter les explications existantes de façon moins
+      formelle.
     </para>
 
     <para>
-      The following is a description of Nix. Just as with pills, I'll try to be as
-      short as possible.
+      Ce qui suit est une description de Nix. Tout comme des comprimés, je vais
+      essayer de les rendre les plus concentrés que possible.
     </para>
    </section>
 
    <section>
-     <title>Not being purely functional</title>
+     <title>Avec effet de bord</title>
 
      <para>
-       Most, if not all, widely used package managers (<link
+       La plupart, si ce n'est la totalité, des gestionnaires de paquets
+       généralement utilisés (<link
        xlink:href="https://wiki.debian.org/dpkg">dpkg</link>, <link
-       xlink:href="http://www.rpm.org/">rpm</link>, ...) mutate the
-       global state of the system. If a package
-       <literal>foo-1.0</literal> installs a program to
-       <filename>/usr/bin/foo</filename>, you cannot install
-       <literal>foo-1.1</literal> as well, unless you change the
-       installation paths or the binary name.
-       But changing the binary names means breaking users of
-       that binary.
+       xlink:href="http://www.rpm.org/">rpm</link>, …) transforment l'état
+       global du système. Si un paquet <literal>foo-1.0</literal> installe un
+       programme dans <filename>/usr/bin/foo</filename>, il est impossible
+       d'installer aussi <literal>foo-1.1</literal> sans changer le chemin
+       d'installation ou le nom du binaire.
+       Mais changer les noms de binaires signifie bloquer les utilisateurs de
+       ces binaires.
      </para>
 
      <para>
-       There are some attempts to mitigate this problem.
-       Debian, for example, partially solves the problem with the
+       Il existe différentes propositions pour atténuer les effets de ce
+       problème. Par exemple, Debian le résout partiellement avec le système des
        <link
-         xlink:href="https://wiki.debian.org/DebianAlternatives">alternatives</link>
-        system.
+         xlink:href="https://wiki.debian.org/DebianAlternatives">alternatives</link>.
      </para>
 
      <para>
-       So while in theory it's possible with some current systems to install
-       multiple versions of the same package, in practice it's very
-       painful.
+       Même si en théorie il est possible d'installer sur certains systèmes
+       actuels plusieurs versions d'un même paquet, en pratique c'est assez
+       pénible.
      </para>
      <para>
-       Let's say you need an nginx service and also an nginx-openresty
-       service. You have to create a new package that changes all the
-       paths to have, for example, an <literal>-openresty</literal> suffix.
+       Disons que vous ayez besoin d'un service nginx mais aussi d'un service
+       nginx-openresty. Il vous faut créer un nouveau paquet qui change tous les
+       chemins pour ajouter, par example, un suffixe
+       <literal>-openresty</literal>.
      </para>
      <para>
-       Or suppose that you want to run two different instances of mysql: 5.2 and
-       5.5. The same thing applies, plus you have to also make sure the two
-       mysqlclient libraries do not collide.
+       Maintenant, supposons que vous souhaitiez faire fonctionner deux
+       instances différentes de mysql. L'une en version 5.2 et l'autre en
+       version 5.5. Les mêmes contraintes s'appliquent et, par ailleurs, il faut
+       s'assurer que les bibliothèques des deux mysqlclient n'entrent pas en
+       conflit.
      </para>
      <para>
-       This is not impossible but it <emphasis>is</emphasis> very inconvenient.
+       This is not impossible but it is very inconvenient.
        If you want to install two whole stacks of software like GNOME 3.10 and GNOME
        3.12, you can imagine the amount of work.
+
+       Ce n'est pas impossible mais ce n'est pas commode
+       <emphasis>du tout</emphasis>. Imaginez un peu la quantité de travail si
+       l'on souhaite installer deux piles logicielles complètes telles que GNOME
+       3.10 et GNOME 3.12 !
      </para>
      <para>
-       From an administrator's point of view: you can use containers. The
-       typical solution nowadays is to create a container per service,
-       especially when different versions are needed. That somewhat
-       solves the problem, but at a different level and with other
-       drawbacks. For example, needing orchestration tools, setting up a shared
-       cache of packages, and new machines to monitor rather than
-       simple services.
+       Côté administrateur, on peut utiliser des conteneurs. La solution typique
+       de nos jours consiste à créer un conteneur par service, particulièrement
+       quand on a besoins de différentes versions. D'une certaine façon, cela
+       résout le problème, mais à un niveau différent et avec d'autres
+       inconvénients. Par exemple, la nécessité d'outils d'orchestration, d'un
+       cache partagé pour les paquets, et de nouvelles machine à monitorer
+       plutôt que de simple services.
      </para>
      <para>
-       From a developer's point of view: you can use virtualenv for python, or jhbuild
-       for gnome, or whatever else. But then how do you mix the two stacks?
-       How do you avoid recompiling the same thing when it could
-       instead be shared? Also you need to set up your development
-       tools to point to the different directories where libraries are
-       installed. Not only that, there's the risk that some of the software
-       incorrectly uses system libraries.
+       Côté développeur, il est possible d'utiliser des virtualenv pour python,
+       des jhbuild pour gnome, etc. Mais alors, comment combiner deux piles ?
+       Comment éviter de recompiler ce qui pourrait simplement être partagé ? De
+       plus, il est nécessaire de configurer les outils de développement pour
+       pointer vers les différents répertoires où sont installées les
+       bibliothèques. Et malgré cela, il subsiste un risque que certains
+       programmes fassent, à tort, usage des bibliothèques du système.
      </para>
      <para>
-       And so on. Nix solves all this at the packaging level and
-       solves it well. A single tool to rule them all.
+       En résumé, Nix résout tout ça au niveau des paquets et le fait bien. Un seul
+       outil pour les gouverner tous.
      </para>
    </section>
 
    <section>
-     <title> Being purely functional</title>
+     <title>Sans effet de bord</title>
 
      <para>
-       Nix makes no assumptions about the global state of the system.
-       This has many advantages, but also some drawbacks of course.
-       The core of a Nix system is the Nix store, usually
-       installed under <filename>/nix/store</filename>, and some tools to manipulate the
-       store. In Nix there is the notion of a <emphasis>derivation</emphasis> rather than a
-       package. The difference can be subtle at the beginning, so I
-       will often use the words interchangeably.
+       Nix ne fait aucune hypothèse sur l'état global du système. Cela présente
+       de nombreux avantages mais aussi, bien sûr, quelques inconvénients. La
+       clé de voute d'un système Nix est l'entrepôt Nix (ou "Nix store"),
+       généralement stocké dans <filename>/nix/store</filename>, et divers
+       outils pour manipuler l'entrepôt. Avec Nix, on ne parle pas vraiment de
+       "paquet" mais plutôt de "<emphasis>dérivation</emphasis>". À un certain
+       niveau, la nuance est assez subtile. Il arrivera donc fréquemment que je
+       puisse utiliser un terme ou l'autre pour parler de la même chose.
      </para>
      <para>
-       Derivations/packages are stored in the Nix store as follows:
-       <filename>/nix/store/<replaceable>hash-name</replaceable></filename>,
-       where the hash uniquely identifies the derivation (this isn't quite true,
-       it's a little more complex), and the name is the name of
-       the derivation.
+       Les dérivations/paquets sont stockées dans l'entrepôt Nix de la façon
+       suivante :
+       <filename>/nix/store/<replaceable>hash-name</replaceable></filename>, où
+       "hash" est l'identifiant unique de la dérivation (même si, en réalité,
+       c'est un peu plus complexe que ça) et "name" est le nom de la dérivation.
      </para>
      <para>
-       Let's take a bash derivation as an example:
+       Prenons comme exemple l'une des dérivations de bash :
        <filename>/nix/store/s4zia7hhqkin1di0f187b79sa2srhv6k-bash-4.2-p45/</filename>.
-       This is a directory in the Nix store which contains <filename>bin/bash</filename>.
+       Ceci est un répertoire de l'entrepot Nix qui contient <filename>bin/bash</filename>.
      </para>
      <para>
-       What that means is that there's no <filename>/bin/bash</filename>, there's only that
-       self-contained build output in the store. The same goes for
-       coreutils and everything else. To make them convenient
-       to use from the shell, Nix will arrange for binaries to appear in
-       your <varname>PATH</varname> as appropriate.
+       Cela signifie qu'il n'y a pas de <filename>/bin/bash</filename>, il n'y a
+       que le résultat d'une construction, indépendante du reste de l'entrepôt.
+       Il en va de même pour coreutils et tout les reste. Afin de les rendre
+       facilement utilisables à partir du shell, Nix s'occupera de faire
+       apparaître les binaires dans <varname>PATH</varname> comme il se doit.
      </para>
      <para>
-       What we have is basically a store of all packages (with different versions
-       occupying different locations), and everything in the Nix store is immutable.
+       Ce que nous obtenons, c'est typiquement un entrepôt contenant tous les
+       paquets (dont les différentes versions sont réparties à différents
+       emplacements), et tout que qui est dans l'entrepôt est immutable.
      </para>
      <para>
-       In fact, there's no ldconfig cache either. So where does bash find libc?
+       En fait, il n'y a même pas de cache pour ldconfig. Alors où bash va-t-il
+       trouver libc ?
      </para>
      <screen><xi:include href="./01/which-bash.txt" parse="text" /></screen>
      <para>
-       It turns out that when bash was built, it was built against that specific
-       version of glibc in the Nix store, and at runtime it will require exactly that
-       glibc version.
+       Il apparaît que bash a été construit à l'aide de cette version spécifique
+       de glibc depuis l'entrepôt Nix et c'est exactement cette version de glibc
+       qui sera chargée à l'exécution.
      </para>
      <para>
-       Don't be confused by the version in the derivation name:
-       it's only a name for us humans. You may end up having two derivations with
-       the same name but different hashes: it's the hash that really matters.
+       Ne soyez pas perturbé par la version dans le nom de la dérivation. Il
+       s'agit simplement d'un nom pour nous, humains. Il peut même arriver que
+       deux dérivations aient le même nom mais des hashes différents. Ce qui
+       compte, c'est le hash.
      </para>
      <para>
-       What does all this mean? It means that you could run mysql 5.2 with glibc-2.18,
-       and mysql 5.5 with glibc-2.19. You could use your python module
-       with python 2.7 compiled with gcc 4.6 and the same python
-       module with python 3 compiled with gcc 4.8, all in the same
-       system.
+       Qu'est-ce que tout cela veut dire ? Eh bien cela signifie que vous pouvez
+       faire tourner mysql 5.2 avec glibc-2.18 en même temps que mysql 5.5 avec
+       glibc-2.19. Vous pouvez utiliser un module python pour python 2.7 compilé
+       avec gcc 4.6 et le même module pour python 3 compilé avec gcc 4.8, tout
+       ça sur le même système.
      </para>
      <para>
-       In other words: no dependency hell, not even a dependency
-       resolution algorithm. Straight dependencies from derivations to
-       other derivations.
+       En d'autres termes : pas d'enfer de dépendances ni même d'algorithme de
+       résolution de dépendance. Mais simplement des dépendances directes de
+       dérivations vers d'autres dérivations.
      </para>
      <para>
-       From an administrator's point of view: if you want an old PHP version for
-       one application, but want to upgrade the rest of the system, that's not painful any more.
+       Du point de vue d'un administrateur, si vous avez besoin une vieille
+       version de PHP pour une application, mais que vous voulez mettre à jour
+       le reste du système, c'est désormais possible sans effort.
      </para>
      <para>
-       From a developer's point of view: if you want to develop webkit with llvm
-       3.4 and 3.3, that's not painful any more.
+       Du point de vue d'un développeur, si vous voulez dévélopper webkit avec
+       llvm 3.4 et 3.3, c'est désormais possible sans effort.
      </para>
    </section>
 
@@ -193,91 +207,100 @@
      <title>Mutable vs. immutable</title>
 
      <para>
-       When upgrading a library, most package managers replace it in-place.
-       All new applications run afterwards with the new library
-       without being recompiled. After all, they all refer dynamically
-       to <filename>libc6.so</filename>.
+       Lorsque l'on met à jour une bibliothèque, la plupart des gestionnaires de
+       paquet se contentent d'effectuer des remplacements. Chaque nouvelle
+       application s'exécute après coup avec la nouvelle bibliothèque sans
+       qu'elle ne soit recompilée. Après tout, elles sont toutes dynamiquement
+       liées à <filename>libc6.so</filename>.
      </para>
      <para>
-       Since Nix derivations are immutable, upgrading a library like glibc
-       means recompiling all applications, because the glibc path to
-       the Nix store has been hardcoded.
+       Étant donné que les dérivations de Nix sont immutables, mettre à jour une
+       bibliothèque telle que glibc signifie recompiler toutes les applications
+       car le chemin vers glibc dans l'entrepôt Nix est codé en dur.
      </para>
      <para>
-       So how do we deal with security updates? In Nix we have some
-       tricks (still pure) to solve this problem, but that's another
-       story.
+       Alors comment traitons-nous les mises à jour de sécurité ? Avec Nix, nous
+       avons quelques astuces (toujours sans effet de bord) pour résoudre ce
+       problème, mais nous verrons cela plus tard.
      </para>
      <para>
-       Another problem is that unless software has in mind a pure
-       functional model, or can be adapted to it, it can be hard to compose
-       applications at runtime.
+       Un autre soucis réside dans la difficulté de composer des applications à
+       l'exécution si le logiciel n'est pas pensé pour utiliser un modèle sans
+       effet de bord ou s'il n'est pas possible de l'adapter à cette logique de
+       fonctionnement.
      </para>
      <para>
-       Let's take Firefox for example. On most systems, you install flash,
-       and it starts working in Firefox because Firefox looks in a global path for plugins.
+       Prenons Firefox, par exemple… Sur la plupart des systèmes, vous installez
+       Flash, et cela fonctionne parce que Firefox cherche les plugins dans un
+       chemin global.
      </para>
      <para>
-       In Nix, there's no such global path for plugins. Firefox
-       therefore must know explicitly about the path to flash. The way
-       we handle this problem is to wrap
-       the Firefox binary so that we can setup the necessary environment to make
-       it find flash in the nix store. That will produce a new Firefox
-       derivation: be aware that it takes a few seconds, and it makes
-       composition harder at runtime.
+      Avec Nix, il n'y a pas ce genre de chemin global pour les plugins. Du
+      coup, Firefox doit savoir explicitement quel chemin mène à Flash. Le moyen
+      que nous employons pour traiter le problème est d'envelopper le binaire de
+      Firefox de telle sorte que l'on puisse configurer l'environnement
+      nécessaire pour lui permettre de trouver Flash dans l'entrepôt Nix. Cela
+      produit une nouvelle dérivation pour Firefox : prenez bien conscience que
+      cela prend quelques secondes et que cela rend la composition plus
+      difficile à l'exécution.
      </para>
      <para>
-       There are no upgrade/downgrade scripts for your data. It doesn't make
-       sense with this approach, because there's no real derivation to
-       be upgraded. With Nix you switch to using other software with
-       its own stack of dependencies, but there's no formal notion of
-       upgrade or downgrade when doing so.
+       Il n'y a pas de scripts d'upgrade ou downgrade pour vos données. Cela n'a
+       aucun sens avec cette approche car aucune dérivation n'a besoin de mise à
+       jour. Avec Nix, on bascule directement vers un autre logiciel avec sa
+       propre pile de dépendances mais il n'y a pas de notion officielle
+       d'upgrade ou de downgrade lorsque l'on fait ça.
      </para>
      <para>
-       If there is a data format change, then migrating to the new data format remains
-       your own responsibility.
+       S'il y a un changement dans le format des données, alors il en va de
+       votre propre responsabilité d'effectuer des migrations nécessaires vers
+       le nouveau format.
      </para>
    </section>
    <section>
      <title>Conclusion</title>
      <para>
-       Nix lets you compose software at build time with maximum
-       flexibility, and with builds being as reproducible as possible.
-       Not only that, due to its nature deploying systems in the cloud is
-       so easy, consistent, and reliable that in the Nix world all
-       existing self-containment and orchestration tools are
-       deprecated by <link xlink:href="http://nixos.org/nixops/">NixOps</link>.
+       Nix vous offre la possibilité de composer un logiciel à sa construction
+       avec un autant de flexibilité, et de repoductibilité que possible. En
+       plus de ça, du fait de son mode de fonctionnement, déployer des systèmes
+       dans un cloud est tellement simple, cohérent et fiable que dans
+       l'écosystème Nix tous les outils existants de conteneurisation et
+       d'orchestration sont mis au rencard par <link
+       xlink:href="http://nixos.org/nixops/">NixOps</link>.
      </para>
      <para>
-       It however <emphasis>currently</emphasis> falls short when
-       working with dynamic composition at runtime or replacing low
-       level libraries, due to the need to rebuild dependencies.
+       Par contre, Nix n'est pas capable <emphasis>à l'heure actuelle</emphasis>
+       de faire de la composition dynamique à l'exécution ou de remplacer les
+       bibliothèques bas niveau du fait que cela nécessite de re-construire les
+       dépendances.
      </para>
      <para>
-       That may sound scary, however after running NixOS on both a
-       server and a laptop desktop, I'm very satisfied so far. Some of
-       the architectural problems just need some man-power, other
-       design problems still need to be solved as a community.
+       Cela peut sembler effrayant à première vue, mais après avoir expérimenté
+       NixOS à la fois sur un serveur et sur un ordinateur portable, je suis
+       très satisfait jusqu'à présent. Bien que certains défis architecturaux
+       nécessitent que l'on se penche encore dessus et que la communauté doive
+       encore résoudre certains problèmes de conception.
      </para>
      <para>
-       Considering <link
+       Si l'on prend en compte le fait que <link
        xlink:href="https://nixos.org/nixpkgs/">Nixpkgs</link> (<link
-       xlink:href="https://github.com/NixOS/nixpkgs">github
-       link</link>) is a completely new repository of all the existing
-       software, with a completely fresh concept, and with few core
-       developers but overall year-over-year increasing contributions,
-       the current state is more than acceptable and beyond the
-       experimental stage. In other words, it's worth your investment.
+       xlink:href="https://github.com/NixOS/nixpkgs">lien vers github</link>)
+       est un dépôt très récent, contenant tous les logiciels disponibles,
+       utilisant un concept original, avec une poignée de développeurs
+       principaux mais des contributions en augmentation année après année,
+       alors son état actuel est plus qu'acceptable et dépasse le simple stade
+       expérimental. En d'autres termes, le jeu en vaut la chandelle.
      </para>
    </section>
 
    <section>
-     <title>Next pill...</title>
+     <title>Prochain comprimé…</title>
 
      <para>
-       ...we will install Nix on top of your current system (I assume
-       GNU/Linux, but we also have OSX users) and start inspecting the
-       installed software.
+       … nous allons voir comment installer Nix sur un système pré-existant
+       (nous supposerons qu'il s'agit d'un GNU/Linux mais nous avons aussi des
+       utilisateurs d'OSX) et nous commencerons à examiner les programmes
+       disponibles.
      </para>
    </section>
 </chapter>
