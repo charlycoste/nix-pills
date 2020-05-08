@@ -48,7 +48,7 @@
 
     <para>
       Ce qui suit est une description de Nix. Tout comme des comprimés, je vais
-      essayer de les rendre les plus concentrés que possible.
+      essayer de les rendre les plus concentrés possible.
     </para>
    </section>
 
@@ -106,11 +106,11 @@
      <para>
        Côté administrateur, on peut utiliser des conteneurs. La solution typique
        de nos jours consiste à créer un conteneur par service, particulièrement
-       quand on a besoins de différentes versions. D'une certaine façon, cela
+       quand on a besoin de différentes versions. D'une certaine façon, cela
        résout le problème, mais à un niveau différent et avec d'autres
        inconvénients. Par exemple, la nécessité d'outils d'orchestration, d'un
        cache partagé pour les paquets, et de nouvelles machine à monitorer
-       plutôt que de simple services.
+       plutôt que de simples services.
      </para>
      <para>
        Côté développeur, il est possible d'utiliser des virtualenv pour python,
